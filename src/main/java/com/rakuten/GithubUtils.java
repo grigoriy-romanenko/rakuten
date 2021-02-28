@@ -11,10 +11,11 @@ import java.util.Optional;
 
 public class GithubUtils {
 
-    private static final String getRepoListUrlTemplate = "https://api.github.com/users/%s/repos?per_page=%d&page=%d";
-    private static final String getReadmeFileUrlTemplate = "https://raw.githubusercontent.com/%s/master/README.md";
+    private static final String GET_REPO_LIST_URL_TEMPLATE = "https://api.github.com/users/%s/repos?per_page=%d&page=%d";
+    private static final String GET_README_FILE_URL_TEMPLATE = "https://raw.githubusercontent.com/%s/master/README.md";
     private static final int REPOSITORIES_PER_PAGE = 100;
     private static final String REPOSITORY_NAME_FIELD = "full_name";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public static List<String> getRepositories(String username) {
         int page = 1;
@@ -28,9 +29,9 @@ public class GithubUtils {
     }
 
     public static List<String> getRepositories(String username, int perPage, int page) {
-        String getRepoListUrl = String.format(getRepoListUrlTemplate, username, perPage, page);
+        String getRepoListUrl = String.format(GET_REPO_LIST_URL_TEMPLATE, username, perPage, page);
         try {
-            ArrayNode repoListResponse = new ObjectMapper().readValue(new URL(getRepoListUrl), ArrayNode.class);
+            ArrayNode repoListResponse = OBJECT_MAPPER.readValue(new URL(getRepoListUrl), ArrayNode.class);
             return repoListResponse.findValuesAsText(REPOSITORY_NAME_FIELD);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -38,7 +39,7 @@ public class GithubUtils {
     }
 
     public static Optional<String> getReadmeFile(String repository) {
-        String getReadmeFileUrl = String.format(getReadmeFileUrlTemplate, repository);
+        String getReadmeFileUrl = String.format(GET_README_FILE_URL_TEMPLATE, repository);
         try (InputStream inputStream = new URL(getReadmeFileUrl).openStream()) {
             return Optional.of(new String(inputStream.readAllBytes()));
         } catch (IOException e) {
